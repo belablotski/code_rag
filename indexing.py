@@ -8,6 +8,7 @@ and caching it in /home/beloblotskiy/.cache/chroma/
 import logging
 import os
 import chromadb
+import chromadb.config
 
 class CodeIndexer(object):
 
@@ -17,7 +18,8 @@ class CodeIndexer(object):
     def _index_file(self, file_path):
         with open(file_path, 'r') as f:
             content = f.read()
-            self.__collection.add(documents=[content], metadatas=[{"source": file_path}], ids=[str(hash(file_path))])
+            # self.__collection.add(documents=[content], metadatas=[{"source": file_path}], ids=[str(hash(file_path))])
+            self.__collection.upsert(documents=[content], metadatas=[{"source": file_path}], ids=[str(hash(file_path))])
 
     def index(self, source_dir):
         cnt = 0
@@ -56,7 +58,7 @@ def query(code_indexer, query):
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-    client = chromadb.HttpClient()
+    client = chromadb.HttpClient(settings=chromadb.config.Settings(anonymized_telemetry=False))
     collection = client.get_or_create_collection("code_index")
 
     code_indexer = CodeIndexer(collection)
