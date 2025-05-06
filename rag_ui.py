@@ -28,7 +28,9 @@ class ChromaDBSession(object):
     def __enter__(self):
         logging.debug(f"Entering ChromaDBSession context with collection_name={self.__collection_name}...")
         self.__client = chromadb.HttpClient(settings=chromadb.config.Settings(anonymized_telemetry=False))
-        self.__vectorstore = Chroma(collection_name=self.__collection_name, client=self.__client)
+        self.__vectorstore = Chroma(collection_name=self.__collection_name, 
+                                    ### embedding_function=OpenAIEmbeddings(), 
+                                    client=self.__client)
         logging.info(f"Connected to {self.__collection_name}.")
         return self.__vectorstore
 
@@ -39,6 +41,7 @@ class ChromaDBSession(object):
 
 class LangChainAI(object):
     def __init__(self, retriever, prompt, llm):
+        self.__retriever = retriever
         self.__rag_chain = (
             {"context": retriever | self._fmt_docs, "question": RunnablePassthrough()}
             | prompt
@@ -46,11 +49,17 @@ class LangChainAI(object):
             | StrOutputParser()
         )
 
-    def _fmt_docs(docs):
+    def _fmt_docs(self, docs):
         return "\n\n".join(doc.page_content for doc in docs)
     
     def answer(self, q: str) -> str:
-        return f'Answer: {q} !!!'
+        rd = retriever.get_relevant_documents(q)
+        logging.info(rd)
+        paths = set([d.metadata["source"] for d in rd])
+        toast(f"Retrieved {len(paths)} relevant docs...")
+        docs = '\n  '.join(sorted(paths))
+        answer = self.__rag_chain.invoke(q)
+        return f"Found {len(paths)} relevant docs:\n  {docs}\nThe answer:\n{answer}"
     
 
 class AISession(object):
@@ -95,4 +104,4 @@ if __name__ == '__main__':
             chat_ai = partial(chat, ai=ai)
             start_server(chat_ai, port=8080, debug=True)
 
-# TODO: Define embedding func
+# TODO: Define embedding func in self.__vectorstore = Chroma(...)
