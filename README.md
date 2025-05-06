@@ -32,3 +32,10 @@ See also:
 2. https://huggingface.co/blog/mteb
 3. https://x.com/Nils_Reimers/status/1487014195568775173
 
+## Running RAG application
+
+The [rag_ui.py](./rag_ui.py) starts the webserver and provides PyWebIO UI to the RAG application.
+
+![Query](./docs/images/test_1_query.png)
+
+![Code](./docs/images/test_1_code.png)
