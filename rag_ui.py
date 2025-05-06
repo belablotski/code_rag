@@ -94,3 +94,5 @@ if __name__ == '__main__':
         with AISession(retriever, "jclemens24/rag-prompt", "gpt-4o-mini") as ai:
             chat_ai = partial(chat, ai=ai)
             start_server(chat_ai, port=8080, debug=True)
+
+# TODO: Define embedding func
